@@ -2,28 +2,30 @@
  * @Author: crab-in-the-northeast 
  * @Date: 2020-11-06 16:41:35 
  * @Last Modified by: crab-in-the-northeast
- * @Last Modified time: 2020-11-06 16:48:17
+ * @Last Modified time: 2021-02-23 10:51:12
  */
 #include <bits/stdc++.h>
-
-const int maxn = 500005 * 4;
-int a[maxn], n;
 inline int read() {
     int x = 0;
-    bool f = true;
+    bool flag = true;
     char ch = getchar();
     while (ch < '0' || ch > '9') {
         if (ch == '-')
-            f = false;
+            flag = false;
         ch = getchar();
     }
     while (ch >= '0' && ch <= '9') {
         x = (x << 1) + (x << 3) + ch - '0';
         ch = getchar();
     }
-    if (f) return x;
+    if (flag)
+        return x;
     return ~(x - 1);
 }
+
+const int maxn = 500005;
+int a[maxn << 2], n;
+
 inline int lowbit(int x) {
     return x & (-x);
 }

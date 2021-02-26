@@ -1,108 +1,105 @@
 /*
  * @Author: crab-in-the-northeast 
- * @Date: 2020-11-06 16:49:46 
+ * @Date: 2021-02-26 10:35:03 
  * @Last Modified by: crab-in-the-northeast
- * @Last Modified time: 2020-11-14 00:04:10
+ * @Last Modified time: 2021-02-26 10:36:13
  */
 #include <bits/stdc++.h>
-
-const int maxn = 100005;
-inline int lson(int x) {
-    return x << 1;
-}
-inline int rson(int x) {
-    return x << 1 | 1;
-}
 inline long long read() {
     long long x = 0;
-    bool f = true;
+    bool flag = true;
     char ch = getchar();
     while (ch < '0' || ch > '9') {
         if (ch == '-')
-            f = false;
+            flag = false;
         ch = getchar();
     }
     while (ch >= '0' && ch <= '9') {
         x = (x << 1) + (x << 3) + ch - '0';
         ch = getchar();
     }
-    if (f) 
+    if (flag)
         return x;
     return ~(x - 1);
 }
 
-unsigned long long a[maxn << 2], ans[maxn << 2], t[maxn << 2];
+const int maxn = 100005;
+int n;
+long long a[maxn], d[maxn << 2], laz[maxn << 2];
 
-inline void tag(long long x, long long l, long long r, long long k) {
-    t[x] += k;
-    ans[x] += k * (r - l + 1);
+inline int lson(int p) {
+    return p << 1;
 }
 
-inline void pushup(long long x) {
-    ans[x] = ans[lson(x)] + ans[rson(x)];
+inline int rson(int p) {
+    return (p << 1) | 1;
 }
 
-inline void pushdown(long long x, long long l, long long r) {
-    long long mid = l + r >> 1;
-    tag(lson(x), l, mid, t[x]);
-    tag(rson(x), mid + 1, r, t[x]);
-    t[x] = 0;
-}
-
-void build(long long x, long long l, long long r) {
-    t[x] = 0;
+void build(int l, int r, int p) {
     if (l == r) {
-        ans[x] = a[l];
+        d[p] = a[l];
         return ;
     }
-    long long mid = l + r >> 1;
-    build(lson(x), l, mid);
-    build(rson(x), mid + 1, r);
-    pushup(x);
-}
-
-inline void update(long long l, long long r, long long tl, long long tr, long long x, long long k) {
-    if (l <= tl && tr <= r) {
-        tag(x, tl, tr, k);
-        return ;
-    }
-    pushdown(x, tl, tr);
-    long long mid = tl + tr >> 1;
-    if (l <= mid)
-        update(l, r, tl, mid, lson(x), k);
-    if (r > mid)
-        update(l, r, mid + 1, tr, rson(x), k);
-    pushup(x);
+    int mid = l + r >> 1;
+    build(l, mid, lson(p));
+    build(mid + 1, r, rson(p));
+    d[p] = d[lson(p)] + d[rson(p)];
     return ;
 }
 
-inline long long query(long long l, long long r, long long tl, long long tr, long long x) {
-    long long res = 0;
-    if (l <= tl && tr <= r)
-        return ans[x];
-    long long mid = tl + tr >> 1;
-    pushdown(x, tl, tr);
+void update(int l, int r, int v, int s, int t, int p) {
+    if (l <= s && t <= r) {
+        d[p] += (t - s + 1) * v;
+        laz[p] += v;
+        return ;
+    }
+    int mid = s + t >> 1;
+    if (laz[p]) {
+        d[lson(p)] += laz[p] * (mid - s + 1);
+        d[rson(p)] += laz[p] * (t - mid);
+        laz[lson(p)] += laz[p];
+        laz[rson(p)] += laz[p];
+        laz[p] = 0;
+    }
     if (l <= mid)
-        res += query(l, r, tl, mid, lson(x));
+        update(l, r, v, s, mid, lson(p));
     if (r > mid)
-        res += query(l, r, mid + 1, tr, rson(x));
-    
-    return res;
+        update(l, r, v, mid + 1, t, rson(p));
+    d[p] = d[lson(p)] + d[rson(p)];
+}
+
+long long getsum(int l, int r, int s, int t, int p) {
+    if (l <= s && t <= r)
+        return d[p];
+    int mid = s + t >> 1;
+    if (laz[p]) {
+        d[lson(p)] += laz[p] * (mid - s + 1);
+        d[rson(p)] += laz[p] * (t - mid);
+        laz[lson(p)] += laz[p];
+        laz[rson(p)] += laz[p];
+        laz[p] = 0;
+    }
+    long long sum = 0;
+    if (l <= mid)
+        sum = getsum(l, r, s, mid, lson(p));
+    if (r > mid)
+        sum += getsum(l, r, mid + 1, t, rson(p));
+    return sum;
 }
 
 int main() {
     int n = read(), m = read();
     for (int i = 1; i <= n; ++i)
         a[i] = read();
-    build(1, 1, n);
+    build(1, n, 1);
     while (m--) {
         int op = read();
         if (op == 1) {
-            long long x = read(), y = read(), k = read();
-            update(x, y, 1, n, 1, k);
-        } else {
-            long long x = read(), y = read();
-            std :: printf("%lld\n", query(x, y, 1, n, 1));
+            int x = read(), y = read(), k = read();
+            update(x, y, k, 1, n, 1);
+        } else if (op == 2) {
+            int x = read(), y = read();
+            printf("%lld\n", getsum(x, y, 1, n, 1));
         }
     }
     return 0;
